@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIXEL SOUL ✧</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:radial-gradient(ellipse at center,#24143e,#0b0918 65%,#03030a);
+  font-family:Georgia,serif;color:#e9d7ff;
+}
+.wrap{text-align:center;width:min(94vw,520px)}
+canvas{width:100%;height:auto;display:block;filter:drop-shadow(0 0 25px #9d58ff35)}
+h1{font-size:19px;letter-spacing:7px;margin:4px 0;color:#e8c9ff}
+p{font-size:12px;letter-spacing:2px;color:#a99acb}
+</style>
+</head>
+<body>
+<div class="wrap">
+<canvas id="eye" width="520" height="520"></canvas>
+<h1>PIXEL SOUL ✧</h1>
+<p>A LITTLE MAGIC IN YOUR EYES</p>
+</div>
+
+<script>
+const c=document.getElementById("eye");
+const ctx=c.getContext("2d");
+const W=520,H=520,CX=260,CY=255;
+const dots=[],stars=[];
+
+function rand(a,b){return a+Math.random()*(b-a)}
+
+for(let i=0;i<2600;i++){
+  const x=rand(75,445),y=rand(155,355);
+  const nx=(x-CX)/174;
+  const limit=78*Math.sqrt(Math.max(0,1-nx*nx));
+  if(Math.abs(y-CY)>limit)continue;
+
+  const dx=x-CX,dy=y-CY;
+  const iris=Math.hypot(dx,dy);
+  const ang=Math.atan2(dy,dx);
+  let color;
+
+  if(iris<29){
+    color=["#080617","#120d29","#24133b","#35204c"][Math.floor(rand(0,4))];
+  }else if(iris<70){
+    const ray=(Math.sin(ang*19)+Math.cos(ang*13))/2;
+    color=ray>0.1?
+      ["#69e8ff","#9c75ff","#ed8aff","#c6a0ff"][Math.floor(rand(0,4))]:
+      ["#29205d","#4336a0","#6048bc","#2679b8"][Math.floor(rand(0,4))];
+  }else{
+    const edge=Math.abs(dy)/Math.max(1,limit);
+    color=edge>.72?
+      ["#8c58c7","#d17adf","#f2a5e8","#a9a0ff"][Math.floor(rand(0,4))]:
+      ["#fff0ff","#e9ddff","#d5e7ff","#f9c8ef"][Math.floor(rand(0,4))];
+  }
+
+  dots.push({x,y,r:rand(1.1,2.7),color,phase:rand(0,7)});
+}
+
+for(let i=0;i<180;i++){
+ stars.push({x:rand(15,505),y:rand(15,505),
+ r:rand(.5,2),phase:rand(0,7),speed:rand(.7,2)});
+}
+
+function draw(t){
+ ctx.clearRect(0,0,W,H);
+
+ // soft magical glow
+ let glow=ctx.createRadialGradient(CX,CY,15,CX,CY,230);
+ glow.addColorStop(0,"#6c36a82b");
+ glow.addColorStop(.6,"#5e2a9c12");
+ glow.addColorStop(1,"transparent");
+ ctx.fillStyle=glow;
+ ctx.fillRect(0,0,W,H);
+
+ // sparkling stars
+ for(const s of stars){
+  const a=.25+.75*(.5+.5*Math.sin(t*.001*s.speed+s.phase));
+  ctx.globalAlpha=a;
+  ctx.fillStyle=["#e6baff","#a6dfff","#ffb7ee"][Math.floor(s.phase)%3];
+  ctx.beginPath();
+  ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+  ctx.fill();
+ }
+ ctx.globalAlpha=1;
+
+ // natural blinking
+ const cycle=t%4300;
+ let blink=0;
+ if(cycle>3450 && cycle<3650){
+   const v=(cycle-3450)/200;
+   blink=Math.sin(v*Math.PI);
+ }
+ const squeeze=1-.94*blink;
+
+ ctx.save();
+ ctx.translate(CX,CY);
+ ctx.scale(1,squeeze);
+ ctx.translate(-CX,-CY);
+
+ // outer eye shadow
+ ctx.shadowBlur=18;
+ ctx.shadowColor="#b875ff";
+ ctx.strokeStyle="#b77bff";
+ ctx.lineWidth=2.3;
+ ctx.beginPath();
+ ctx.moveTo(84,CY);
+ ctx.bezierCurveTo(145,158,205,163,CX,CY);
+ ctx.bezierCurveTo(315,163,375,158,436,CY);
+ ctx.bezierCurveTo(375,352,315,347,CX,CY);
+ ctx.bezierCurveTo(205,347,145,352,84,CY);
+ ctx.closePath();
+ ctx.stroke();
+ ctx.shadowBlur=0;
+
+ // many tiny painted circles
+ for(const d of dots){
+  const twinkle=.82+.18*Math.sin(t*.002+d.phase);
+  ctx.globalAlpha=twinkle;
+  ctx.fillStyle=d.color;
+  ctx.beginPath();
+  ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+  ctx.fill();
+ }
+ ctx.globalAlpha=1;
+
+ // iris rings
+ ctx.lineWidth=1.5;
+ ctx.strokeStyle="#d6b5ff88";
+ ctx.beginPath();ctx.arc(CX,CY,69,0,Math.PI*2);ctx.stroke();
+ ctx.strokeStyle="#77dffff0";
+ ctx.beginPath();ctx.arc(CX,CY,63,0,Math.PI*2);ctx.stroke();
+
+ // glossy highlights
+ ctx.shadowBlur=16;ctx.shadowColor="#ffffff";
+ ctx.fillStyle="#fffaff";
+ ctx.beginPath();ctx.ellipse(238,222,13,7,-.6,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();ctx.arc(250,237,4,0,Math.PI*2);ctx.fill();
+ ctx.shadowBlur=0;
+
+ // tiny reflected stars inside the eye
+ ctx.fillStyle="#fff0ff";
+ ctx.beginPath();
+ ctx.arc(286,274,2.5,0,Math.PI*2);ctx.fill();
+ ctx.beginPath();
+ ctx.arc(233,280,1.8,0,Math.PI*2);ctx.fill();
+
+ ctx.restore();
+
+ // eyelids close over the eye during blink
+ if(blink>.01){
+  const cover=blink*85;
+  const lid=ctx.createLinearGradient(0,CY-cover,0,CY+cover);
+  lid.addColorStop(0,"#211334");
+  lid.addColorStop(.5,"#4d276e");
+  lid.addColorStop(1,"#170e28");
+  ctx.fillStyle=lid;
+  ctx.fillRect(70,CY-80,380,160);
+
+  ctx.strokeStyle="#d6a1ff";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(84,CY);
+  ctx.quadraticCurveTo(CX,CY+cover*.2,436,CY);
+  ctx.stroke();
+ }
+
+ requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
